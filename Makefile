@@ -401,6 +401,7 @@ CNTKLIBRARY_SRC =\
 	$(SOURCEDIR)/CNTKv2LibraryDll/Trainer.cpp \
 	$(SOURCEDIR)/CNTKv2LibraryDll/Utils.cpp \
 	$(SOURCEDIR)/CNTKv2LibraryDll/Value.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/Globals.cpp \
 	$(SOURCEDIR)/CNTKv2LibraryDll/Variable.cpp \
 	$(SOURCEDIR)/CNTKv2LibraryDll/Learner.cpp \
 	$(SOURCEDIR)/CNTKv2LibraryDll/DistributedCommunicator.cpp \
@@ -467,7 +468,21 @@ EVAL:=eval
 
 SGDLIB_SRC=\
 	$(SOURCEDIR)/SGDLib/Profiler.cpp \
-	$(SOURCEDIR)/SGDLib/SGD.cpp
+	$(SOURCEDIR)/SGDLib/SGD.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/BackCompat.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/Function.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/MinibatchSource.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/Common.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/ComputeInputStatistics.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/NDArrayView.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/NDMask.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/Trainer.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/Utils.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/Value.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/Variable.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/Learner.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/DistributedCommunicator.cpp \
+	$(SOURCEDIR)/CNTKv2LibraryDll/DataParallelDistributedTrainer.cpp \
 	
 EVAL_SRC=\
 	$(SOURCEDIR)/EvalDll/CNTKEval.cpp \
@@ -510,11 +525,11 @@ EVAL_SAMPLE_CLIENT_OBJ:=$(patsubst %.cpp, $(OBJDIR)/%.o, $(EVAL_SAMPLE_CLIENT_SR
 ALL+=$(EVAL_SAMPLE_CLIENT)
 SRC+=$(EVAL_SAMPLE_CLIENT_SRC)
 
-$(EVAL_SAMPLE_CLIENT): $(EVAL_SAMPLE_CLIENT_OBJ) | $(EVAL_LIB) $(CNTKLIBRARY_LIB) 
+$(EVAL_SAMPLE_CLIENT): $(EVAL_SAMPLE_CLIENT_OBJ) | $(EVAL_LIB) 
 	@echo $(SEPARATOR)
 	@mkdir -p $(dir $@)
 	@echo building $(EVAL_SAMPLE_CLIENT) for $(ARCH) with build type $(BUILDTYPE)
-	$(CXX) $(LDFLAGS) $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH)) $(patsubst %,$(RPATH)%, $(ORIGINLIBDIR) $(LIBPATH)) -o $@ $^ $(LIBS) -l$(EVAL) -l$(CNTKLIBRARY) -l$(CNTKMATH)
+	$(CXX) $(LDFLAGS) $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH)) $(patsubst %,$(RPATH)%, $(ORIGINLIBDIR) $(LIBPATH)) -o $@ $^ $(LIBS) -l$(EVAL) -l$(CNTKMATH)
 
 ########################################
 # BinaryReader plugin
@@ -831,11 +846,11 @@ CNTK:=$(BINDIR)/cntk
 ALL+=$(CNTK)
 SRC+=$(CNTK_SRC)
 
-$(CNTK): $(CNTK_OBJ) | $(CNTKMATH_LIB) $(CNTKLIBRARY_LIB)
+$(CNTK): $(CNTK_OBJ) | $(CNTKMATH_LIB)
 	@echo $(SEPARATOR)
 	@mkdir -p $(dir $@)
 	@echo building output for $(ARCH) with build type $(BUILDTYPE)
-	$(CXX) $(LDFLAGS) $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH)) $(patsubst %,$(RPATH)%, $(ORIGINLIBDIR) $(LIBPATH)) -o $@ $^ $(LIBS) -l$(CNTKLIBRARY) -l$(CNTKMATH) -fopenmp
+	$(CXX) $(LDFLAGS) $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH)) $(patsubst %,$(RPATH)%, $(ORIGINLIBDIR) $(LIBPATH)) -o $@ $^ $(LIBS) -l$(CNTKMATH) -ldl -fopenmp
 
 # deployable resources: standard library of BS
 CNTK_CORE_BS:=$(BINDIR)/cntk.core.bs
@@ -868,11 +883,11 @@ UNITTEST_EVAL := $(BINDIR)/evaltests
 ALL += $(UNITTEST_EVAL)
 SRC += $(UNITTEST_EVAL_SRC)
 
-$(UNITTEST_EVAL) : $(UNITTEST_EVAL_OBJ) | $(EVAL_LIB) $(CNTKMATH_LIB) $(CNTKLIBRARY_LIB)
+$(UNITTEST_EVAL) : $(UNITTEST_EVAL_OBJ) | $(EVAL_LIB) $(CNTKMATH_LIB)
 	@echo $(SEPARATOR)
 	@mkdir -p $(dir $@)
 	@echo building $@ for $(ARCH) with build type $(BUILDTYPE)
-	$(CXX) $(LDFLAGS) $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH) $(BOOSTLIB_PATH)) $(patsubst %, $(RPATH)%, $(ORIGINLIBDIR) $(LIBPATH) $(BOOSTLIB_PATH)) -o $@ $^ $(BOOSTLIBS) $(LIBS) -l$(EVAL) -l$(CNTKLIBRARY) -l$(CNTKMATH) 
+	$(CXX) $(LDFLAGS) $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH) $(BOOSTLIB_PATH)) $(patsubst %, $(RPATH)%, $(ORIGINLIBDIR) $(LIBPATH) $(BOOSTLIB_PATH)) -o $@ $^ $(BOOSTLIBS) $(LIBS) -l$(EVAL) -l$(CNTKMATH) 
 
 #TODO: create project specific makefile or rules to avoid adding project specific path to the global path
 INCLUDEPATH += $(SOURCEDIR)/Readers/CNTKTextFormatReader
@@ -926,11 +941,11 @@ UNITTEST_NETWORK := $(BINDIR)/networktests
 ALL += $(UNITTEST_NETWORK)
 SRC += $(UNITTEST_NETWORK_SRC)
 
-$(UNITTEST_NETWORK): $(UNITTEST_NETWORK_OBJ) | $(CNTKMATH_LIB) $(CNTKTEXTFORMATREADER) $(CNTKLIBRARY_LIB)
+$(UNITTEST_NETWORK): $(UNITTEST_NETWORK_OBJ) | $(CNTKMATH_LIB) $(CNTKTEXTFORMATREADER)
 	@echo $(SEPARATOR)
 	@mkdir -p $(dir $@)
 	@echo building $@ for $(ARCH) with build type $(BUILDTYPE)
-	$(CXX) $(LDFLAGS) $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH) $(BOOSTLIB_PATH)) $(patsubst %, $(RPATH)%, $(ORIGINLIBDIR) $(LIBPATH) $(BOOSTLIB_PATH)) -o $@ $^ $(BOOSTLIBS) $(LIBS) -l$(CNTKMATH) -l$(CNTKLIBRARY) -fopenmp
+	$(CXX) $(LDFLAGS) $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH) $(BOOSTLIB_PATH)) $(patsubst %, $(RPATH)%, $(ORIGINLIBDIR) $(LIBPATH) $(BOOSTLIB_PATH)) -o $@ $^ $(BOOSTLIBS) $(LIBS) -l$(CNTKMATH) -ldl -fopenmp
 
 UNITTEST_MATH_SRC = \
 	$(SOURCEDIR)/../Tests/UnitTests/MathTests/BatchNormalizationEngineTests.cpp \
