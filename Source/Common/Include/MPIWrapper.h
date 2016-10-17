@@ -285,18 +285,19 @@ private:
 
 public:
 
+    static bool s_initialized;
+
     static MPIWrapperPtr GetInstance(bool create = false)
     {
-        static bool initialized = false;
         if (create)
         {
-            if (initialized)
+            if (s_initialized)
                 LogicError("Creating MPIWrapper instance after a GetInstance call has been already made!");
             else
                 s_mpi = std::make_shared<MPIWrapper>();
         }
 
-        initialized = true;
+        s_initialized = true;
         return s_mpi;
     }
 

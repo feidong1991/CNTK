@@ -17,8 +17,6 @@ using namespace Microsoft::MSR::CNTK;
 
 namespace CNTK
 {
-    static Microsoft::MSR::CNTK::MPIWrapperPtr s_mpi;
-
     DistributedCommunicatorPtr MPICommunicator()
     {
         return std::make_shared<MPICommunicatorImpl>();
@@ -58,13 +56,10 @@ namespace CNTK
 
     MPICommunicatorImpl::MPICommunicatorImpl()
     {
-        if (!s_mpi)
-            s_mpi = MPIWrapper::GetInstance(true);
-
-        m_mpi = s_mpi;
-        m_currentWorker.m_globalRank = s_mpi->CurrentNodeRank();
-        m_currentWorker.m_hostId = std::wstring(s_mpi->CurrentNodeName());
-        for (size_t i = 0; i < s_mpi->NumNodesInUse(); ++i)
+        m_mpi = MPIWrapper::s_initialized ? MPIWrapper::GetInstance() : MPIWrapper::GetInstance(true);
+        m_currentWorker.m_globalRank = m_mpi->CurrentNodeRank();
+        m_currentWorker.m_hostId = std::wstring(m_mpi->CurrentNodeName());
+        for (size_t i = 0; i < m_mpi->NumNodesInUse(); ++i)
         {
             if (i == m_currentWorker.m_globalRank)
                 m_workers.insert(m_currentWorker);
