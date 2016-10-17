@@ -45,6 +45,7 @@
 %ignore CNTK::Internal::Gather;
 %ignore CNTK::Internal::Scatter;
 %ignore CNTK::Internal::Slice;
+%ignore CNTK::DistributedCommunicator::AggregateAsync;
 
 // These aren't exported from the CNTK C++ library
 %ignore CNTK::Internal::IsReversingTensorShapesInErrorMessagesEnabled;

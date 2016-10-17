@@ -4,6 +4,8 @@
 //
 #pragma once
 
+#include "V2SimpleDistGradAggregator.h"
+
 #include "Basics.h"
 #include "DataReader.h"
 #include "ComputationNode.h"
@@ -32,7 +34,7 @@ template <class ElemType>
 class SimpleEvaluator
 {
 public:
-    SimpleEvaluator(ComputationNetworkPtr net, const MPIWrapperPtr& mpi, bool enableDistributedMBReading = false, const size_t numMBsToShowResult = 100, const size_t firstMBsToShowResult = 0, const int traceLevel = 0, const size_t maxSamplesInRAM = SIZE_MAX,
+    SimpleEvaluator(ComputationNetworkPtr net, const MPIWrapperPtr& mpi, bool useV2Aggregator, bool enableDistributedMBReading = false, const size_t numMBsToShowResult = 100, const size_t firstMBsToShowResult = 0, const int traceLevel = 0, const size_t maxSamplesInRAM = SIZE_MAX,
                     const size_t numSubminiBatches = 1) :
         m_net(net), 
         m_numMBsToShowResult(numMBsToShowResult), 
@@ -43,7 +45,8 @@ public:
         m_mpi(mpi), 
         m_distGradAgg(nullptr),
         m_gradHeader(nullptr),
-        m_enableDistributedMBReading(enableDistributedMBReading)
+        m_enableDistributedMBReading(enableDistributedMBReading),
+        m_useV2Aggregator(useV2Aggregator)
     {
     }
 
@@ -180,7 +183,11 @@ public:
                     m_gradHeader.reset(DistGradHeader::Create(evalNodes.size()), [](DistGradHeader* ptr) {
                         DistGradHeader::Destroy(ptr);
                     });
-                    m_distGradAgg = make_shared<SimpleDistGradAggregator<ElemType>>(m_mpi, false /*useAsyncAggregation*/, 0 /*syncStatsTrace*/);
+
+                    if (m_useV2Aggregator)
+                        m_distGradAgg = make_shared<V2SimpleDistGradAggregator<ElemType>>(m_mpi, false /*useAsyncAggregation*/, 0 /*syncStatsTrace*/, ::CNTK::MPICommunicator());
+                    else 
+                        m_distGradAgg = make_shared<SimpleDistGradAggregator<ElemType>>(m_mpi, false /*useAsyncAggregation*/, 0 /*syncStatsTrace*/);
                 }
 
                 m_gradHeader->numEvalNode = evalNodes.size();
@@ -377,7 +384,9 @@ public:
                         DistGradHeader::Destroy(ptr);
                     });
                 }
-                SimpleDistGradAggregator<ElemType> distGradAgg(m_mpi, false /*useAsyncAggregation*/, 0 /*syncStatsTrace*/);
+                auto communicator = ::CNTK::MPICommunicator();
+                // TODO: This won't go to master. Just to make sure our tests are green.
+                V2SimpleDistGradAggregator<ElemType> distGradAgg(m_mpi, false /*useAsyncAggregation*/, 0 /*syncStatsTrace*/, communicator);
 
                 auto runMeanParameterPtr = node->GetInputs()[3];
                 auto runStdParameterPtr = node->GetInputs()[4];
@@ -448,6 +457,9 @@ protected:
     size_t m_numSubminiBatches;
     MPIWrapperPtr m_mpi;
     bool m_enableDistributedMBReading;
+
+    // Currently used for testing V2 functionality against the baselines.
+    bool m_useV2Aggregator;
 
     std::shared_ptr<IDistGradAggregator<ElemType>> m_distGradAgg;
     std::shared_ptr<struct DistGradHeader> m_gradHeader;

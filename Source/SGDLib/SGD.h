@@ -193,6 +193,9 @@ protected:
     // the total number of epochs to run.
     size_t m_maxEpochs;
 
+    // Currently used for testing V2 functionality against the baselines.
+    bool m_useV2Aggregator;
+
     bool m_gradientClippingWithTruncation;
     double m_clippingThresholdPerSample;
 

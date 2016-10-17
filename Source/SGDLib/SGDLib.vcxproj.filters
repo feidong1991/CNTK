@@ -126,6 +126,9 @@
     <ClInclude Include="Criterion.h">
       <Filter>SGD</Filter>
     </ClInclude>
+    <ClInclude Include="V2SimpleDistGradAggregator.h">
+      <Filter>Parallelization</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">
