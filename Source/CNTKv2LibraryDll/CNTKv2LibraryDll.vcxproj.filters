@@ -17,6 +17,7 @@
     <ClCompile Include="ComputeInputStatistics.cpp" />
     <ClCompile Include="DistributedCommunicator.cpp" />
     <ClCompile Include="DataParallelDistributedTrainer.cpp" />
+    <ClCompile Include="Globals.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
