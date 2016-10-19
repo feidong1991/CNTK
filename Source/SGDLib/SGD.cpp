@@ -566,7 +566,7 @@ void SGD<ElemType>::TrainOrAdaptModel(int startEpoch, ComputationNetworkPtr net,
 
         if (validationSetDataReader != trainSetDataReader && validationSetDataReader != nullptr)
         {
-            SimpleEvaluator<ElemType> evalforvalidation(net, m_mpi, m_useV2Aggregator, m_enableDistributedMBReading);
+            SimpleEvaluator<ElemType> evalforvalidation(net, m_mpi, m_enableDistributedMBReading);
             vector<wstring> cvSetTrainAndEvalNodes;
             if (criterionNodes.size() > 0)
             {
@@ -1948,7 +1948,7 @@ void SGD<ElemType>::InitDistGradAgg(int numEvalNodes, int numGradientBits, int t
         RuntimeError("Gradient quantization is unsupported in CNTK binaries built without quantized gradient aggregation support!");
     }
 
-    if (m_useV2Aggregator) // Currently used to check V2 against baselines.
+    if (Globals::UseV2Aggregator()) // Currently used to check V2 against baselines.
         m_distGradAgg = std::make_shared<V2SimpleDistGradAggregator<ElemType>>(m_mpi, m_bufferedAsyncGradientAggregation, m_syncStatsTrace, ::CNTK::MPICommunicator());
     else
         m_distGradAgg = std::make_shared<SimpleDistGradAggregator<ElemType>>(m_mpi, m_bufferedAsyncGradientAggregation, m_syncStatsTrace);
@@ -2521,7 +2521,6 @@ SGDParams::SGDParams(const ConfigRecordType& configSGD, size_t sizeofElemType)
 
     // the total number of epochs to run.
     m_maxEpochs = configSGD(L"maxEpochs");
-    m_useV2Aggregator = configSGD(L"useV2Aggregator", true);
 
     // Note: Momentum is best specified as a MB-size agnostic fashion.
     // Because momentum per sample is a number very close to 1, it is more handy to use a logarithmic specification.

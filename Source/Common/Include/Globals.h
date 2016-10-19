@@ -23,6 +23,11 @@ namespace Microsoft { namespace MSR { namespace CNTK {
             return m_forceDeterministicAlgorithms;
         }
 
+        static bool UseV2Aggregator()
+        {
+            return true;
+        }
+
     private:
         static std::atomic<bool> m_forceDeterministicAlgorithms;
     };

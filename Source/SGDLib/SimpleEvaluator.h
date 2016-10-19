@@ -17,6 +17,7 @@
 #include "IDistGradAggregator.h"
 #include "SimpleDistGradAggregator.h"
 #include "Criterion.h"
+#include "Globals.h"
 
 #include <vector>
 #include <string>
@@ -34,7 +35,7 @@ template <class ElemType>
 class SimpleEvaluator
 {
 public:
-    SimpleEvaluator(ComputationNetworkPtr net, const MPIWrapperPtr& mpi, bool useV2Aggregator, bool enableDistributedMBReading = false, const size_t numMBsToShowResult = 100, const size_t firstMBsToShowResult = 0, const int traceLevel = 0, const size_t maxSamplesInRAM = SIZE_MAX,
+    SimpleEvaluator(ComputationNetworkPtr net, const MPIWrapperPtr& mpi, bool enableDistributedMBReading = false, const size_t numMBsToShowResult = 100, const size_t firstMBsToShowResult = 0, const int traceLevel = 0, const size_t maxSamplesInRAM = SIZE_MAX,
                     const size_t numSubminiBatches = 1) :
         m_net(net), 
         m_numMBsToShowResult(numMBsToShowResult), 
@@ -45,8 +46,7 @@ public:
         m_mpi(mpi), 
         m_distGradAgg(nullptr),
         m_gradHeader(nullptr),
-        m_enableDistributedMBReading(enableDistributedMBReading),
-        m_useV2Aggregator(useV2Aggregator)
+        m_enableDistributedMBReading(enableDistributedMBReading)
     {
     }
 
@@ -184,7 +184,7 @@ public:
                         DistGradHeader::Destroy(ptr);
                     });
 
-                    if (m_useV2Aggregator)
+                    if (Globals::UseV2Aggregator())
                         m_distGradAgg = make_shared<V2SimpleDistGradAggregator<ElemType>>(m_mpi, false /*useAsyncAggregation*/, 0 /*syncStatsTrace*/, ::CNTK::MPICommunicator());
                     else 
                         m_distGradAgg = make_shared<SimpleDistGradAggregator<ElemType>>(m_mpi, false /*useAsyncAggregation*/, 0 /*syncStatsTrace*/);
@@ -457,9 +457,6 @@ protected:
     size_t m_numSubminiBatches;
     MPIWrapperPtr m_mpi;
     bool m_enableDistributedMBReading;
-
-    // Currently used for testing V2 functionality against the baselines.
-    bool m_useV2Aggregator;
 
     std::shared_ptr<IDistGradAggregator<ElemType>> m_distGradAgg;
     std::shared_ptr<struct DistGradHeader> m_gradHeader;

@@ -79,8 +79,7 @@ static void DoEvalBase(const ConfigParameters& config, IDataReader& reader)
                            config(L"traceNodeNamesCategory", ConfigParameters::Array(stringargvector())),
                            config(L"traceNodeNamesSparse",   ConfigParameters::Array(stringargvector())));
 
-    bool useV2Aggregator = config(L"useV2Aggregator", true);
-    SimpleEvaluator<ElemType> eval(net, MPIWrapper::GetInstance(), useV2Aggregator, enableDistributedMBReading, numMBsToShowResult, 
+    SimpleEvaluator<ElemType> eval(net, MPIWrapper::GetInstance(), enableDistributedMBReading, numMBsToShowResult, 
                                    firstMBsToShowResult, traceLevel, maxSamplesInRAM, numSubminiBatches);
     eval.Evaluate(&reader, evalNodeNamesVector, mbSize[0], epochSize);
 }
@@ -122,8 +121,7 @@ static void DoEvalBNBase(const ConfigParameters& config, IDataReader& reader)
         config(L"traceNodeNamesCategory", ConfigParameters::Array(stringargvector())),
         config(L"traceNodeNamesSparse", ConfigParameters::Array(stringargvector())));
 
-    bool useV2Aggregator = config(L"useV2Aggregator", true);
-    SimpleEvaluator<ElemType> eval(net, MPIWrapper::GetInstance(), useV2Aggregator, enableDistributedMBReading, numMBsToShowResult,
+    SimpleEvaluator<ElemType> eval(net, MPIWrapper::GetInstance(), enableDistributedMBReading, numMBsToShowResult,
         firstMBsToShowResult, traceLevel, maxSamplesInRAM, numSubminiBatches);
     eval.EvaluateBN(&reader, evalNodeNamesVector, exportPath, mbSize[0], iters, epochSize);
 }
@@ -232,8 +230,7 @@ void DoCrossValidate(const ConfigParameters& config)
         auto net = ComputationNetwork::CreateFromFile<ElemType>(deviceId, cvModelPath);
         // BUGBUG: ^^ Should use GetModelFromConfig()
 
-        bool useV2Aggregator = config(L"useV2Aggregator", true);
-        SimpleEvaluator<ElemType> eval(net, MPIWrapper::GetInstance(), useV2Aggregator, enableDistributedMBReading, numMBsToShowResult,
+        SimpleEvaluator<ElemType> eval(net, MPIWrapper::GetInstance(), enableDistributedMBReading, numMBsToShowResult,
             firstMBsToShowResult, traceLevel, maxSamplesInRAM, numSubminiBatches);
 
         fprintf(stderr, "Model %ls --> \n", cvModelPath.c_str());
